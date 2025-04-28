@@ -1,0 +1,37 @@
+{
+  "name": "expense-tracker-cli",
+  "version": "1.0.0",
+  "description": "simple expense tracker to manage your finances.",
+  "main": "dist/main.js",
+  "dependencies": {
+    "@libsql/client": "^0.15.4",
+    "commander": "^13.1.0",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.43.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MeLlamoOmar/expense-tracker-cli.git"
+  },
+  "keywords": [
+    "tracker",
+    "expense",
+    "cli"
+  ],
+  "author": "Omar Alexander Bencosme Tio",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MeLlamoOmar/expense-tracker-cli/issues"
+  },
+  "homepage": "https://github.com/MeLlamoOmar/expense-tracker-cli#readme",
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "drizzle-kit": "^0.31.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
+  },
+  "type": "module"
+}
