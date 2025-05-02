@@ -9,10 +9,6 @@ program
   .name('expense-tracker')
   .description('Simple expense tracker to manage your finances.')
   .version('1.0.0')
-  .option('-d, --debug', 'output extra debugging information')
-  .option('-f, --file <path>', 'specify the file to process')
-  .option('-t, --timeout <seconds>', 'specify the timeout in seconds', '60')
-  .option('-v, --verbose', 'enable verbose output');
 
 program
   .command('list')
