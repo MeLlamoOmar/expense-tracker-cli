@@ -18,8 +18,8 @@ program
 program
   .command('add')
   .description('Users can add an expense with a description and amount.')
-  .requiredOption('--description <description>', 'Flag to add the description of the expense')
-  .requiredOption('--amount <amount>', 'Flag to add the amount of the expense')
+  .requiredOption('-d, --description <description>', 'Flag to add the description of the expense')
+  .requiredOption('-a, --amount <amount>', 'Flag to add the amount of the expense')
   .option('-c, --category <category>', 'Flag to add a category to the expense')
   .action((options) => addExpense({...options, amount: Number(options.amount)}))
 
@@ -27,6 +27,7 @@ program
   .command('sumary')
   .description('Users can view a summary of all expenses.')
   .option('-m, --month <month>', 'Users can view a summary of expenses for a specific month (of current year).')
+  .option('-c, --category <category>', 'Allow users to filter expenses by category.')
   .action((option) => summaryExpenses({month: Number(option.month)}))
 
 program

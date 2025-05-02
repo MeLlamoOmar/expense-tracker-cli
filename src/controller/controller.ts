@@ -1,24 +1,48 @@
 import { eq } from 'drizzle-orm';
 import dayjs from 'dayjs';
 
-import { expensesTable } from '@/db/schema/Schema.js';
+import { categories, expenses } from '@/db/schema/Schema.js';
 import db from '@/db/db.js';
 
 export const listExpenses = async (): Promise<void> => {
-  const transactions = await db.select().from(expensesTable)
-  const modifiedTransactions = transactions.map((transaction) => {return {...transaction, date: dayjs(transaction.date).format('D-MM-YYYY')}})
+  const transactions = await db.select().from(expenses).leftJoin(categories, eq(expenses.categoryId, categories.id))
+  const modifiedTransactions = transactions.map((transaction) => {
+    transaction.expenses.date = dayjs(transaction.expenses.date).format('D-MM-YYYY')
+    return {
+      id: transaction.expenses.id,
+      date: transaction.expenses.date,
+      description: transaction.expenses.description,
+      amount: transaction.expenses.amount,
+      category: transaction.categories?.name
+    }
+  })
   console.table(modifiedTransactions)
 }
 
-export const addExpense = async ({description, amount}: {description: string; amount: number}) => {
-  const newExpense: typeof expensesTable.$inferInsert = {
+export const addExpense = async ({description, amount, category}: {description: string; amount: number, category?: string}) => {
+  let categoryId: number
+  const categoryToUse = category?.trim().toLocaleLowerCase() || 'otros'
+
+  const existingCategory = await db.select().from(categories).where(eq(categories.name, categoryToUse)).limit(1).execute().then((res) => res[0])
+  if (existingCategory) {
+    categoryId = existingCategory.id
+    console.log(`Categoria encontrada: ${categoryToUse} (ID: ${categoryId.toString().toUpperCase()})`)
+  } else {
+    const newCategory = await db.insert(categories).values({name: categoryToUse}).returning({ id: categories.id }).execute()
+    categoryId = newCategory[0].id
+    console.log(`Categoria creada: ${categoryToUse} (ID: ${categoryId.toString().toUpperCase()})`)
+  }
+
+  
+  const newExpense: typeof expenses.$inferInsert = {
     date: new Date(Date.now()).toString(),
     description: description,
-    amount
+    amount,
+    categoryId: categoryId
   }
 
   try {
-    const addedExpense = await db.insert(expensesTable).values(newExpense)
+    const addedExpense = await db.insert(expenses).values(newExpense)
     console.log(`Expense added successfully (ID: ${addedExpense.lastInsertRowid})`)
   } catch {
     console.log('Expense not added')
@@ -26,12 +50,12 @@ export const addExpense = async ({description, amount}: {description: string; am
 }
 
 export const summaryExpenses = async ({month}: {month?: number}) => {
-  const expenses = await db.select().from(expensesTable)
+  const expensesList = await db.select().from(expenses)
   let summary: number
 
   if (month) {
     const monthString = dayjs().month(month - 1)
-    summary = expenses.reduce((prevExp, currentExp) => {
+    summary = expensesList.reduce((prevExp, currentExp) => {
       const currentDate = dayjs(currentExp.date)
       if (currentDate.month() === month - 1) {
         return prevExp + currentExp.amount
@@ -41,7 +65,7 @@ export const summaryExpenses = async ({month}: {month?: number}) => {
 
     console.log(`Total expenses for ${monthString.format('MMMM')}: $${summary}`)
   } else {
-    summary = expenses.reduce((prevExp, currentExp) => prevExp + currentExp.amount, 0)
+    summary = expensesList.reduce((prevExp, currentExp) => prevExp + currentExp.amount, 0)
 
     console.log(`Total expenses: $${summary}`)
   }
@@ -49,7 +73,7 @@ export const summaryExpenses = async ({month}: {month?: number}) => {
 
 export const deleteExpense = async ({id}: {id: number}) => {
   try {
-    await db.delete(expensesTable).where(eq(expensesTable.id, id))
+    await db.delete(expenses).where(eq(expenses.id, id))
     console.log('Expense deleted successfully')
   } catch {
     console.log('Expense not deleted')

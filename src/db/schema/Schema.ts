@@ -6,11 +6,11 @@ export const expenses = sqliteTable('expenses', {
   date: text().notNull(),
   description: text().notNull(),
   amount: int().notNull(),
-  categoryId: text('category_id').notNull()
+  categoryId: int('category_id').notNull()
 })
 
 export const categories = sqliteTable('categories', {
-  id: text().primaryKey(),
+  id: int().primaryKey(),
   name: text().notNull()
 })
 
