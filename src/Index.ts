@@ -28,7 +28,7 @@ program
   .description('Users can view a summary of all expenses.')
   .option('-m, --month <month>', 'Users can view a summary of expenses for a specific month (of current year).')
   .option('-c, --category <category>', 'Allow users to filter expenses by category.')
-  .action((option) => summaryExpenses({month: Number(option.month)}))
+  .action((options) => summaryExpenses({...options ,month: Number(options.month)}))
 
 program
   .command('delete')
