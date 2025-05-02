@@ -20,6 +20,7 @@ program
   .description('Users can add an expense with a description and amount.')
   .requiredOption('--description <description>', 'Flag to add the description of the expense')
   .requiredOption('--amount <amount>', 'Flag to add the amount of the expense')
+  .option('-c, --category <category>', 'Flag to add a category to the expense')
   .action((options) => addExpense({...options, amount: Number(options.amount)}))
 
 program
