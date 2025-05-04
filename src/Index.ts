@@ -2,6 +2,7 @@
 
 import { Command } from "@commander-js/extra-typings";
 import { addExpense, deleteExpense, listExpenses, summaryExpenses } from "./controller/controller.js";
+import { categoryController } from "./controller/categoryController.js";
 
 const program = new Command();
 
@@ -24,7 +25,7 @@ program
   .action((options) => addExpense({...options, amount: Number(options.amount)}))
 
 program
-  .command('sumary')
+  .command('summary')
   .description('Users can view a summary of all expenses.')
   .option('-m, --month <month>', 'Users can view a summary of expenses for a specific month (of current year).')
   .option('-c, --category <category>', 'Allow users to filter expenses by category.')
@@ -35,5 +36,12 @@ program
   .description('Users can delete an expense by id of expense.')
   .requiredOption('--id <id>', 'Flag to delete an expense by id.')
   .action(option => deleteExpense({...option, id: Number(option.id)}))
+
+program
+  .command('category')
+  .option('-a, --add <addCategory>', 'Flag to add a category')
+  .option('-l, --list', 'Flag to show all the categories')
+  .option('-d, --delete <deleteId>', 'Flag to delete a category')
+  .action(options => categoryController({...options, deleteId: Number(options.delete)}))
 
 program.parse()

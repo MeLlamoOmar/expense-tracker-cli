@@ -5,8 +5,8 @@ import { categories, expenses } from '@/db/schema/Schema.js';
 import db from '@/db/db.js';
 
 export const listExpenses = async (): Promise<void> => {
-  const transactions = await db.select().from(expenses).leftJoin(categories, eq(expenses.categoryId, categories.id))
-  const modifiedTransactions = transactions.map((transaction) => {
+  const expensesList = await db.select().from(expenses).leftJoin(categories, eq(expenses.categoryId, categories.id))
+  const modifiedExpensesList = expensesList.map((transaction) => {
     transaction.expenses.date = dayjs(transaction.expenses.date).format('D-MM-YYYY')
     return {
       id: transaction.expenses.id,
@@ -16,7 +16,7 @@ export const listExpenses = async (): Promise<void> => {
       category: transaction.categories?.name
     }
   })
-  console.table(modifiedTransactions)
+  console.table(modifiedExpensesList)
 }
 
 export const addExpense = async ({description, amount, category}: {description: string; amount: number, category?: string}) => {
@@ -49,23 +49,43 @@ export const addExpense = async ({description, amount, category}: {description: 
   }
 }
 
-export const summaryExpenses = async ({month}: {month?: number}) => {
-  const expensesList = await db.select().from(expenses)
+export const summaryExpenses = async ({month, category}: {month?: number, category?: string}) => {
+  const expensesList = await db.select().from(expenses).leftJoin(categories, eq(expenses.categoryId, categories.id))
   let summary: number
 
-  if (month) {
+  if (month && !category) {
     const monthString = dayjs().month(month - 1)
-    summary = expensesList.reduce((prevExp, currentExp) => {
-      const currentDate = dayjs(currentExp.date)
+    summary = expensesList.reduce((prevExpAmount, currentExp) => {
+      const currentDate = dayjs(currentExp.expenses.date)
       if (currentDate.month() === month - 1) {
-        return prevExp + currentExp.amount
+        return prevExpAmount + currentExp.expenses.amount
       }
-      return prevExp
+      return prevExpAmount
+    }, 0)
+
+    console.log(`Total expenses for ${monthString.format('MMMM')}: $${summary}`)
+  } else if (!month && category) {
+    summary = expensesList.reduce((prevExpAmount, currentExp) => {
+      if (currentExp.categories?.name === category.toLowerCase()) {
+        return prevExpAmount + currentExp.expenses.amount
+      }
+      return prevExpAmount
+    }, 0)
+
+    console.log(`Total expenses for the category ${category}: $${summary}`)
+  } else if (month && category) {
+    const monthString = dayjs().month(month - 1)
+    summary = expensesList.reduce((prevExpAmount, currentExp) => {
+      const currentDate = dayjs(currentExp.expenses.date)
+      if (currentDate.month() === month - 1) {
+        return prevExpAmount + currentExp.expenses.amount
+      }
+      return prevExpAmount
     }, 0)
 
     console.log(`Total expenses for ${monthString.format('MMMM')}: $${summary}`)
   } else {
-    summary = expensesList.reduce((prevExp, currentExp) => prevExp + currentExp.amount, 0)
+    summary = expensesList.reduce((prevExpAmount, currentExp) => prevExpAmount + currentExp.expenses.amount, 0)
 
     console.log(`Total expenses: $${summary}`)
   }
